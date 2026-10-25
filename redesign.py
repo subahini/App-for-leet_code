@@ -1,0 +1,43 @@
+from pathlib import Path
+p=Path('dist/app.js');s=p.read_text()
+s=s.replace("function nav(){let q=", "function nav(){let q=")
+s=s.replace("lessons.map((l,i)=>l.title.toLowerCase().includes(q)?", "lessons.map((l,i)=>l.category===category && (l.title+' '+l.problem).toLowerCase().includes(q)?")
+s=s.replace("`${state.done.length} of ${lessons.length} topics completed`", "`${pathIds().filter(i=>state.done.includes(i)).length} of ${pathIds().length} topics completed`")
+s=s.replace("$('#progress').value=state.done.length", "$('#progress').max=pathIds().length;$('#progress').value=pathIds().filter(i=>state.done.includes(i)).length")
+s=s.replace("function render(){nav();", "function render(){nav();")
+s=s.replace("l.level+' / PYTHON'", "l.level+' / '+paths[category].name.toUpperCase()")
+s=s.replace("`TOPIC ${String(current+1).padStart(2,'0')} / 18`", "`TOPIC ${pathIds().indexOf(current)+1} / ${pathIds().length}`")
+s=s.replace("$('#prev').disabled=current===0;$('#next').disabled=current===lessons.length-1;", "$('#prev').disabled=pathIds().indexOf(current)===0;$('#next').disabled=pathIds().indexOf(current)===pathIds().length-1;document.querySelector('.toolbar span:last-child').textContent=paths[category].name+' · '+pathIds().length+' units';")
+s=s.replace('<p>Apply this topic to the linked problem. Read its constraints, write a brute-force approach, then improve it. Use the lesson as a hint after your first attempt.</p><p><a target="_blank" rel="noopener noreferrer" href="https://leetcode.com/problems/${l.slug}/">Open problem on LeetCode ↗</a></p>', '${l.task ? `<div class="callout">${esc(l.task)}</div>` : `<p>Read the problem constraints, explain your approach, then implement and test it.</p><p><a target="_blank" rel="noopener noreferrer" href="https://leetcode.com/problems/${l.slug}/">Open problem on LeetCode ↗</a></p>`}')
+s=s.replace('Your Python scratchpad','Your answer / Python scratchpad').replace('run your solution on LeetCode.','run code in your Python environment or on the linked problem.').replace('This editor does not execute Python;','This editor does not execute Python;')
+s=s.replace("current--;tab='learn'", "current=pathIds()[pathIds().indexOf(current)-1];tab='learn'").replace("current++;tab='learn'", "current=pathIds()[pathIds().indexOf(current)+1];tab='learn'")
+s=s.replace('Math.min(17,Number(s.current)||0)','Math.min(lessons.length-1,Number(s.current)||0)')
+s=s.replace('save();render()}catch{alert', 'category=lessons[current].category;save();showHome()}catch{alert')
+s=s.replace('};render();','};showHome();')
+# Add navigation and category hub before rendering takes place.
+insert='''
+const paths={
+ python:{name:'Python foundations',icon:'Py',desc:'Build fluency with types, loops, functions and reliable code.',color:'mint'},
+ algorithms:{name:'Arrays & algorithms',icon:'[ ]',desc:'Find the pattern: pointers, windows, prefix sums and search.',color:'sage'},
+ structures:{name:'Data structures',icon:'{ }',desc:'Strings, stacks, trees, graphs and heaps. Choose the right tool.',color:'blue'},
+ math:{name:'Math for problem solving',icon:'∑',desc:'Numbers, probability, vectors and optimization, one idea at a time.',color:'sand'},
+ ml:{name:'Machine learning',icon:'ML',desc:'Train, evaluate and improve models with sound experiments.',color:'purple'},
+ ai:{name:'AI engineering',icon:'✦',desc:'Embeddings, retrieval, generative systems and thoughtful evaluation.',color:'pink'},
+ software:{name:'Software engineering',icon:'</>',desc:'Testing, Git, SQL, APIs and systems that handle failure.',color:'blue'},
+ interview:{name:'Interview & exam practice',icon:'↗',desc:'Explain clearly, practice under time pressure and learn from mistakes.',color:'sand'}
+};
+let category='python';
+const hub=document.createElement('section');hub.id='hub';document.querySelector('header').after(hub);
+function pathIds(){return lessons.flatMap((l,i)=>l.category===category?[i]:[])}
+function openLesson(i){current=i;category=lessons[i].category;tab='learn';hub.hidden=true;document.querySelector('.layout').hidden=false;render();save();window.scrollTo(0,0)}
+function showHome(){document.querySelector('.layout').hidden=true;hub.hidden=false;let done=state.done.length;let xp=done*50+Object.values(state.quiz).filter(Boolean).length*10;
+ hub.innerHTML=`<div class="hub-intro"><div><div class="eyebrow">YOUR PERSONAL LEARNING CAMPUS</div><h1>Build skills.<br><em>Unlock your next chapter.</em></h1><p>From your first Python function to ML and software interviews.<br>Choose a path. Learn a concept. Put it into practice.</p></div><div class="score"><b>${xp}</b><span>XP EARNED</span><strong>${done} / ${lessons.length} completed</strong><small>${done>=30?'Pattern explorer':done>=10?'Skill builder':'Curious beginner'} · ${Math.floor(done/10)} milestones earned</small></div></div><div class="daily"><div><div class="eyebrow">TODAY’S CHALLENGE</div><h3>${esc(lessons[dailyIndex()].problem)}</h3><p>A small step counts. Try one problem, then write what you learned.</p></div><button class="primary" id="daily-start">Take the challenge →</button></div><div class="section-title"><h2>Choose your learning path</h2><span>${lessons.length} bite-size units · 8 paths</span></div><div class="path-grid">${Object.entries(paths).map(([key,p])=>{let ids=lessons.flatMap((l,i)=>l.category===key?[i]:[]),n=ids.filter(i=>state.done.includes(i)).length;return `<button class="path-card ${p.color}" data-path="${key}"><span class="path-icon">${p.icon}</span><span class="path-meta">${ids.length} UNITS · BEGINNER → ADVANCED</span><h3>${p.name}</h3><p>${p.desc}</p><progress max="${ids.length}" value="${n}"></progress><div>${n} completed <strong>Explore path →</strong></div></button>`}).join('')}</div><p class="disclaimer">A growing study collection, not an exhaustive syllabus or a guarantee of exam or interview results. Match your preparation to your course or role.</p>`;
+ document.querySelectorAll('[data-path]').forEach(b=>b.onclick=()=>showList(b.dataset.path));$('#daily-start').onclick=()=>openLesson(dailyIndex());window.scrollTo(0,0)}
+function dailyIndex(){let date=new Date();let day=Math.floor(Date.UTC(date.getFullYear(),date.getMonth(),date.getDate())/86400000);return day%lessons.length}
+function showList(key){category=key;document.querySelector('.layout').hidden=true;hub.hidden=false;let p=paths[key];let ids=pathIds();hub.innerHTML=`<button id="back-campus">← All learning paths</button><div class="list-intro"><div class="eyebrow">${p.name.toUpperCase()} / YOUR ROADMAP</div><h1>${p.name}</h1><p>${p.desc}</p><div class="callout">Suggested routine: learn for 5 minutes, attempt the task for 10–20 minutes, then answer the recall quiz. Earn 50 XP per completed unit and 10 XP per correct quiz.</div></div><label>Search this path<input id="list-search" placeholder="Search topics or problems…"></label><div id="problem-list"></div>`;function list(){let q=$('#list-search').value.toLowerCase();let matches=ids.filter(i=>(lessons[i].title+' '+lessons[i].problem).toLowerCase().includes(q));$('#problem-list').innerHTML=matches.length?matches.map((i)=>{let l=lessons[i];return `<button class="problem-row" data-open="${i}"><span class="problem-num">${state.done.includes(i)?'✓':String(ids.indexOf(i)+1).padStart(2,'0')}</span><span><b>${esc(l.title)}</b><small>${esc(l.problem)}</small></span><span class="pill">${l.level}</span><span>→</span></button>`}).join(''):'<p>No matching topics. Try a different search.</p>';document.querySelectorAll('[data-open]').forEach(b=>b.onclick=()=>openLesson(+b.dataset.open))}$('#list-search').oninput=list;$('#back-campus').onclick=showHome;list();window.scrollTo(0,0)}
+document.querySelector('.brand').onclick=e=>{e.preventDefault();showHome()};
+const back=document.createElement('button');back.id='back-list';back.textContent='← Back to problem list';document.querySelector('main').prepend(back);back.onclick=()=>showList(category);
+'''
+s=s.replace("document.querySelectorAll('[data-tab]').forEach(b=>b.onclick",insert+"\ndocument.querySelectorAll('[data-tab]').forEach(b=>b.onclick")
+p.write_text(s)
+h=Path('dist/index.html');t=h.read_text().replace('PYTHON / STUDY LAB','YOUR LEARNING CAMPUS').replace('ArrayStep · Learn Python arrays','ArrayStep · Your learning campus').replace('YOUR DAILY PRACTICE · TRIAL 01','LEARN · PRACTICE · RECALL').replace('18 lessons · beginner → advanced','Your learning path').replace('Independent learning app. Not affiliated with LeetCode. Original explanations; practice links open LeetCode.','Independent study app. Not affiliated with LeetCode. Original lessons and exercises; some practice links open LeetCode.').replace('max="18"','max="56"');h.write_text(t)

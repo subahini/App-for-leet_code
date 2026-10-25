@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">ArrayStep</string>
+    <string name="title_activity_main">ArrayStep</string>
+    <string name="package_name">ch.subahininadarajh.arraystep</string>
+    <string name="custom_url_scheme">ch.subahininadarajh.arraystep</string>
+</resources>

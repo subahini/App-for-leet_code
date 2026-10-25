@@ -1,0 +1,5 @@
+ArrayStep
+Copyright (c) 2026 Subahini Nadarajh.
+All rights reserved in project-specific material to the extent applicable.
+No general redistribution license is granted for project-specific source/content.
+Third-party packages retain their own licenses; see THIRD_PARTY_NOTICES.txt.

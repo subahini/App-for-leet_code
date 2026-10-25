@@ -1,0 +1,7 @@
+{
+  "appId": "ch.subahininadarajh.arraystep",
+  "appName": "ArrayStep",
+  "webDir": "mobile-web",
+  "ios": {"contentInset": "automatic"},
+  "android": {"allowMixedContent": false}
+}

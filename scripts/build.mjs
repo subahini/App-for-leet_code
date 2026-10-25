@@ -1,0 +1,10 @@
+import {cp,mkdir,readFile,writeFile,rm} from 'node:fs/promises';
+import {build} from 'esbuild';
+await rm('mobile-web',{recursive:true,force:true});
+await mkdir('mobile-web',{recursive:true});
+await cp('dist','mobile-web',{recursive:true});
+await build({entryPoints:['src/native.js'],bundle:true,format:'iife',outfile:'mobile-web/native.js',minify:true,legalComments:'eof'});
+let html=await readFile('mobile-web/index.html','utf8');
+html=html.replace('<script type="module" src="app.js">','<script src="native.js"></script><script type="module" src="app.js">');
+await writeFile('mobile-web/index.html',html);
+console.log('Bundled offline study app and native browser/backup integrations.');

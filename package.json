@@ -1,0 +1,27 @@
+{
+  "name": "arraystep",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Offline-first Python, algorithms, math, AI and software study app",
+  "author": "Subahini Nadarajh",
+  "license": "UNLICENSED",
+  "scripts": {
+    "check": "node --check dist/app.js && python3 scripts/check_content.py",
+    "build": "node scripts/build.mjs",
+    "sync": "npm run build && cap sync",
+    "android": "cap open android",
+    "ios": "cap open ios"
+  },
+  "dependencies": {
+    "@capacitor/android": "8.5.3",
+    "@capacitor/browser": "8.0.5",
+    "@capacitor/core": "8.5.3",
+    "@capacitor/filesystem": "8.1.5",
+    "@capacitor/ios": "8.5.3",
+    "@capacitor/share": "8.0.3"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "8.5.3",
+    "esbuild": "0.28.2"
+  }
+}
